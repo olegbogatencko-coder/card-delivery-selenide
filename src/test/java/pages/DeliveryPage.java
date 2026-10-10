@@ -3,6 +3,7 @@ package pages;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import data.DeliveryData;
+import org.openqa.selenium.Keys;
 
 import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selenide.$;
@@ -21,31 +22,39 @@ public class DeliveryPage {
     private final SelenideElement successNotification = $("[data-test-id='success-notification']");
 
     public void fillForm(DeliveryData data) {
-        // ГОРОД — вводим по одной букве, потом ждём подсказку
+        // ГОРОД — очищаем через JS, вводим и кликаем по подсказке
+        Selenide.executeJavaScript(
+                "arguments[0].value = '';" +
+                        "arguments[0].dispatchEvent(new Event('input', {bubbles: true}));",
+                cityInput);
         cityInput.click();
         cityInput.sendKeys(data.getCity());
-        Selenide.sleep(800);
-        // Кликаем по подсказке, если она появилась
+        Selenide.sleep(700);
+        // Если появилась подсказка — кликаем по первой
         if (!$$(".menu-item__control").isEmpty()) {
             $$(".menu-item__control").first().click();
         }
 
-        // ДАТА — двойной клик, чтобы открыть календарь, потом вводим текст
+        // ДАТА — очищаем через JS, вводим
+        Selenide.executeJavaScript(
+                "arguments[0].value = '';" +
+                        "arguments[0].dispatchEvent(new Event('input', {bubbles: true}));",
+                dateInput);
         dateInput.click();
-        dateInput.press(org.openqa.selenium.Keys.chord(org.openqa.selenium.Keys.CONTROL, "a"));
-        dateInput.press(org.openqa.selenium.Keys.DELETE);
         dateInput.sendKeys(data.getDate());
-        dateInput.press(org.openqa.selenium.Keys.TAB);
+        dateInput.sendKeys(Keys.TAB);
 
-        // ИМЯ
+        // ИМЯ — очищаем через JS
+        Selenide.executeJavaScript("arguments[0].value = ''", nameInput);
         nameInput.click();
         nameInput.sendKeys(data.getName());
 
-        // ТЕЛЕФОН
+        // ТЕЛЕФОН — очищаем через JS
+        Selenide.executeJavaScript("arguments[0].value = ''", phoneInput);
         phoneInput.click();
         phoneInput.sendKeys(data.getPhone());
 
-        // ГАЛОЧКА — через JavaScript-клик, чтобы обойти все нюансы
+        // ГАЛОЧКА — через JS-клик, он надёжнее
         Selenide.executeJavaScript("arguments[0].click();", agreementCheckbox);
     }
 
@@ -54,12 +63,12 @@ public class DeliveryPage {
     }
 
     public void verifySuccessNotification(String expectedDate) {
-        successNotification.shouldBe(visible, java.time.Duration.ofSeconds(15))
-                .shouldHave(text("Успешно!"));
+        successNotification.shouldBe(visible).shouldHave(text("Успешно!"));
+        successNotification.shouldHave(text(expectedDate));
     }
 
     public void verifyReplanModal() {
-        replanModal.shouldBe(visible, java.time.Duration.ofSeconds(15))
+        replanModal.shouldBe(visible, java.time.Duration.ofSeconds(10))
                 .shouldHave(text("Необходимо подтверждение"));
     }
 
