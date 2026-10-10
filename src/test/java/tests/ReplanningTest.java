@@ -1,12 +1,9 @@
 package tests;
 
-import com.codeborne.selenide.Configuration;
-import com.codeborne.selenide.Selenide;
 import data.DataGenerator;
 import data.DeliveryData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.openqa.selenium.chrome.ChromeOptions;
 import pages.DeliveryPage;
 
 import static com.codeborne.selenide.Selenide.open;
@@ -16,14 +13,6 @@ public class ReplanningTest {
 
     @BeforeEach
     void setUp() {
-        Configuration.browserSize = "1920x1080";
-
-        ChromeOptions options = new ChromeOptions();
-        options.addArguments("--no-sandbox");
-        options.addArguments("--disable-dev-shm-usage");
-        options.addArguments("--disable-gpu");
-        Configuration.browserCapabilities = options;
-
         open("http://localhost:9999");
     }
 
@@ -33,11 +22,10 @@ public class ReplanningTest {
         DeliveryData firstData = DataGenerator.generateData("ru");
         deliveryPage.fillForm(firstData);
         deliveryPage.submitForm();
+        deliveryPage.verifySuccessNotification(firstData.getDate());
+        deliveryPage.waitForNotificationDisappear();
 
-        // Пауза, чтобы приложение обработало первую заявку
-        Selenide.sleep(5000);
-
-        // ========== ВТОРАЯ ЗАЯВКА С НОВОЙ ДАТОЙ ==========
+        // ========== ВТОРАЯ ЗАЯВКА ==========
         open("http://localhost:9999");
         DeliveryPage page2 = new DeliveryPage();
 
@@ -54,7 +42,5 @@ public class ReplanningTest {
         // ========== ГЛАВНАЯ ПРОВЕРКА: модалка перепланирования ==========
         page2.verifyReplanModal();
         page2.clickReplan();
-
-        Selenide.sleep(2000);
     }
 }
