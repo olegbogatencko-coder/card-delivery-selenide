@@ -17,16 +17,20 @@ public class ReplanningTest {
     @BeforeEach
     void setUp() {
         Configuration.browserSize = "1920x1080";
+        Configuration.browser = "chrome";
         Configuration.headless = Boolean.parseBoolean(
                 System.getProperty("selenide.headless", "false")
         );
 
-        // ВАЖНО: на CI (Ubuntu) Chrome требует флаги --no-sandbox и --disable-dev-shm-usage,
-        // иначе падает с SessionNotCreatedException
+        // Флаги Chrome для работы в CI (Ubuntu/GitHub Actions)
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--no-sandbox");
+        options.addArguments("--disable-setuid-sandbox");
         options.addArguments("--disable-dev-shm-usage");
         options.addArguments("--disable-gpu");
+        options.addArguments("--no-zygote");
+        options.addArguments("--single-process");
+        options.addArguments("--remote-allow-origins=*");
         Configuration.browserCapabilities = options;
 
         open("http://localhost:9999");
@@ -34,15 +38,17 @@ public class ReplanningTest {
 
     @Test
     void shouldReplanDeliveryDate() {
-        // Первая заявка
+        // ========== ПЕРВАЯ ЗАЯВКА ==========
         DeliveryData firstData = DataGenerator.generateData("ru");
         deliveryPage.fillForm(firstData);
         deliveryPage.submitForm();
         deliveryPage.verifySuccessNotification(firstData.getDate());
 
+        // Пауза, чтобы приложение обработало первую заявку и уведомление исчезло
         Selenide.sleep(7000);
 
-        // Вторая заявка — на обновлённой странице
+        // ========== ВТОРАЯ ЗАЯВКА ==========
+        // Перезагружаем страницу, чтобы поля были чистыми (иначе данные дублируются)
         open("http://localhost:9999");
         DeliveryPage page2 = new DeliveryPage();
 
@@ -56,8 +62,13 @@ public class ReplanningTest {
         page2.fillForm(secondData);
         page2.submitForm();
 
+        // Проверяем модалку перепланирования
         page2.verifyReplanModal();
+
+        // Нажимаем «Перепланировать»
         page2.clickReplan();
+
+        // Проверяем успех
         page2.verifySuccessNotification(secondData.getDate());
     }
 }
