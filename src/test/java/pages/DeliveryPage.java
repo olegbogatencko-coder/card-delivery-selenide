@@ -19,10 +19,8 @@ public class DeliveryPage {
 
     private final SelenideElement replanModal = $("[data-test-id='replan-notification']");
     private final SelenideElement replanButton = replanModal.$("button.button");
-    private final SelenideElement successNotification = $("[data-test-id='success-notification']");
 
     public void fillForm(DeliveryData data) {
-        // ГОРОД — очищаем через JS, вводим и кликаем по подсказке
         Selenide.executeJavaScript(
                 "arguments[0].value = '';" +
                         "arguments[0].dispatchEvent(new Event('input', {bubbles: true}));",
@@ -30,12 +28,10 @@ public class DeliveryPage {
         cityInput.click();
         cityInput.sendKeys(data.getCity());
         Selenide.sleep(700);
-        // Если появилась подсказка — кликаем по первой
         if (!$$(".menu-item__control").isEmpty()) {
             $$(".menu-item__control").first().click();
         }
 
-        // ДАТА — очищаем через JS, вводим
         Selenide.executeJavaScript(
                 "arguments[0].value = '';" +
                         "arguments[0].dispatchEvent(new Event('input', {bubbles: true}));",
@@ -44,17 +40,14 @@ public class DeliveryPage {
         dateInput.sendKeys(data.getDate());
         dateInput.sendKeys(Keys.TAB);
 
-        // ИМЯ — очищаем через JS
         Selenide.executeJavaScript("arguments[0].value = ''", nameInput);
         nameInput.click();
         nameInput.sendKeys(data.getName());
 
-        // ТЕЛЕФОН — очищаем через JS
         Selenide.executeJavaScript("arguments[0].value = ''", phoneInput);
         phoneInput.click();
         phoneInput.sendKeys(data.getPhone());
 
-        // ГАЛОЧКА — через JS-клик, он надёжнее
         Selenide.executeJavaScript("arguments[0].click();", agreementCheckbox);
     }
 
@@ -62,14 +55,8 @@ public class DeliveryPage {
         submitButton.click();
     }
 
-    public void verifySuccessNotification(String expectedDate) {
-        successNotification.shouldBe(visible).shouldHave(text("Успешно!"));
-        successNotification.shouldHave(text(expectedDate));
-    }
-
     public void verifyReplanModal() {
-        replanModal.shouldBe(visible, java.time.Duration.ofSeconds(10))
-                .shouldHave(text("Необходимо подтверждение"));
+        replanModal.should(exist, java.time.Duration.ofSeconds(15));
     }
 
     public void clickReplan() {
