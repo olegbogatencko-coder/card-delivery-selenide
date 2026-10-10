@@ -1,50 +1,50 @@
 package tests;
 
-import com.codeborne.selenide.Configuration;
+import com.codeborne.selenide.Selenide;
 import data.DataGenerator;
 import data.DeliveryData;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pages.DeliveryPage;
 
 import static com.codeborne.selenide.Selenide.open;
 
 public class ReplanningTest {
-    private final DeliveryPage deliveryPage = new DeliveryPage();
-
-    @BeforeEach
-    void setUp() {
-        Configuration.browserSize = "1920x1080";
-        open("http://localhost:9999");
-    }
 
     @Test
     void shouldReplanDeliveryDate() {
-        // Шаг 1: заполняем форму ПЕРВЫЙ раз
-        DeliveryData firstData = DataGenerator.generateData("ru");
-        deliveryPage.fillForm(firstData);
-        deliveryPage.submitForm();
-        deliveryPage.verifySuccessNotification(firstData.getDate());
+        // ========== ПЕРВАЯ ЗАЯВКА ==========
+        open("http://localhost:9999");
+        DeliveryPage page1 = new DeliveryPage();
 
-        // Шаг 2: заполняем форму ВТОРОЙ раз ТЕМИ ЖЕ данными,
-        // но с ДРУГОЙ датой (как и сказано в задании)
+        DeliveryData firstData = DataGenerator.generateData("ru");
+        page1.fillForm(firstData);
+        page1.submitForm();
+        page1.verifySuccessNotification(firstData.getDate());
+
+        // Ждём, чтобы уведомление исчезло, и приложение обработало первую заявку
+        Selenide.sleep(7000);
+
+        // ========== ВТОРАЯ ЗАЯВКА (на обновлённой странице) ==========
+        open("http://localhost:9999");
+        DeliveryPage page2 = new DeliveryPage();
+
         DeliveryData secondData = DeliveryData.builder()
-                .city(firstData.getCity())      // тот же город
-                .date(DataGenerator.generateDate(7))  // другая дата
-                .name(firstData.getName())      // то же имя
-                .phone(firstData.getPhone())    // тот же телефон
+                .city(firstData.getCity())
+                .date(DataGenerator.generateDate(7))
+                .name(firstData.getName())
+                .phone(firstData.getPhone())
                 .build();
 
-        deliveryPage.fillForm(secondData);
-        deliveryPage.submitForm();
+        page2.fillForm(secondData);
+        page2.submitForm();
 
-        // Шаг 3: проверяем, что появилось модальное окно перепланирования
-        deliveryPage.verifyReplanModal();
+        // Проверяем модалку перепланирования
+        page2.verifyReplanModal();
 
-        // Шаг 4: нажимаем «Перепланировать»
-        deliveryPage.clickReplan();
+        // Нажимаем «Перепланировать»
+        page2.clickReplan();
 
-        // Шаг 5: проверяем, что встреча успешно перепланирована
-        deliveryPage.verifySuccessNotification(secondData.getDate());
+        // Проверяем успех
+        page2.verifySuccessNotification(secondData.getDate());
     }
 }

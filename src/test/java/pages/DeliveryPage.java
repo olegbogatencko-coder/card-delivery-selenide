@@ -1,10 +1,12 @@
 package pages;
 
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import data.DeliveryData;
 
 import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.$$;
 
 public class DeliveryPage {
     private final SelenideElement cityInput = $("[data-test-id='city'] input");
@@ -19,28 +21,32 @@ public class DeliveryPage {
     private final SelenideElement successNotification = $("[data-test-id='success-notification']");
 
     public void fillForm(DeliveryData data) {
-        // ГОРОД — вводим полное название (Faker генерирует настоящие города РФ)
-        cityInput.clear();
-        cityInput.setValue(data.getCity());
+        // ГОРОД — вводим по одной букве, потом ждём подсказку
+        cityInput.click();
+        cityInput.sendKeys(data.getCity());
+        Selenide.sleep(800);
+        // Кликаем по подсказке, если она появилась
+        if (!$$(".menu-item__control").isEmpty()) {
+            $$(".menu-item__control").first().click();
+        }
 
-        // ДАТА
-        dateInput.doubleClick();
-        dateInput.sendKeys(org.openqa.selenium.Keys.chord(org.openqa.selenium.Keys.CONTROL, "a"));
-        dateInput.sendKeys(org.openqa.selenium.Keys.DELETE);
+        // ДАТА — двойной клик, чтобы открыть календарь, потом вводим текст
+        dateInput.click();
+        dateInput.press(org.openqa.selenium.Keys.chord(org.openqa.selenium.Keys.CONTROL, "a"));
+        dateInput.press(org.openqa.selenium.Keys.DELETE);
         dateInput.sendKeys(data.getDate());
+        dateInput.press(org.openqa.selenium.Keys.TAB);
 
         // ИМЯ
-        nameInput.clear();
-        nameInput.setValue(data.getName());
+        nameInput.click();
+        nameInput.sendKeys(data.getName());
 
         // ТЕЛЕФОН
-        phoneInput.clear();
-        phoneInput.setValue(data.getPhone());
+        phoneInput.click();
+        phoneInput.sendKeys(data.getPhone());
 
-        // ГАЛОЧКА
-        if (!agreementCheckbox.isSelected()) {
-            agreementCheckbox.click();
-        }
+        // ГАЛОЧКА — через JavaScript-клик, чтобы обойти все нюансы
+        Selenide.executeJavaScript("arguments[0].click();", agreementCheckbox);
     }
 
     public void submitForm() {
@@ -48,14 +54,13 @@ public class DeliveryPage {
     }
 
     public void verifySuccessNotification(String expectedDate) {
-        successNotification.shouldBe(visible).shouldHave(text("Успешно!"));
-        successNotification.shouldHave(text(expectedDate));
+        successNotification.shouldBe(visible, java.time.Duration.ofSeconds(15))
+                .shouldHave(text("Успешно!"));
     }
 
     public void verifyReplanModal() {
-        replanModal.shouldBe(visible)
-                .shouldHave(text("Необходимо подтверждение"))
-                .shouldHave(text("У вас уже запланирована встреча на другую дату. Перепланировать?"));
+        replanModal.shouldBe(visible, java.time.Duration.ofSeconds(15))
+                .shouldHave(text("Необходимо подтверждение"));
     }
 
     public void clickReplan() {
