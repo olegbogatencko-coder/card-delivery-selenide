@@ -6,7 +6,6 @@ import data.DataGenerator;
 import data.DeliveryData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.openqa.selenium.chrome.ChromeOptions;
 import pages.DeliveryPage;
 
 import static com.codeborne.selenide.Selenide.open;
@@ -21,18 +20,6 @@ public class ReplanningTest {
         Configuration.headless = Boolean.parseBoolean(
                 System.getProperty("selenide.headless", "false")
         );
-
-        // Флаги Chrome для работы в CI (Ubuntu/GitHub Actions)
-        // ВАЖНО: --single-process и --no-zygote ЗАПРЕЩЕНЫ — они крашат Chrome
-        ChromeOptions options = new ChromeOptions();
-        options.addArguments("--no-sandbox");
-        options.addArguments("--disable-setuid-sandbox");
-        options.addArguments("--disable-dev-shm-usage");
-        options.addArguments("--disable-gpu");
-        options.addArguments("--remote-allow-origins=*");
-        options.addArguments("--disable-software-rasterizer");
-        Configuration.browserCapabilities = options;
-
         open("http://localhost:9999");
     }
 
