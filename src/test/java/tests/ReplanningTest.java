@@ -24,6 +24,7 @@ public class ReplanningTest {
 
     @Test
     void shouldReplanDeliveryDate() {
+        // Первая заявка
         DeliveryData firstData = DataGenerator.generateData("ru");
         deliveryPage.fillForm(firstData);
         deliveryPage.submitForm();
@@ -31,6 +32,7 @@ public class ReplanningTest {
 
         Selenide.sleep(7000);
 
+        // Вторая заявка — на обновлённой странице
         open("http://localhost:9999");
         DeliveryPage page2 = new DeliveryPage();
 
