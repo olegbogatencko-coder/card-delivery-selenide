@@ -15,7 +15,7 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Setup Chrome for Testing
+      - name: Setup Chrome
         uses: browser-actions/setup-chrome@v1
         with:
           chrome-version: stable
@@ -30,8 +30,8 @@ jobs:
           sleep 20
           curl -sf http://localhost:9999 > /dev/null && echo "SUT is UP" || echo "SUT might be down"
 
-      - name: Run tests (headless)
-        run: ./gradlew test -Dselenide.headless=true
+      - name: Run tests via xvfb
+        run: xvfb-run --auto-servernum --server-args='-screen 0 1920x1080x24' ./gradlew test
 
       - name: Upload test reports
         if: always()

@@ -6,6 +6,7 @@ import data.DataGenerator;
 import data.DeliveryData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.openqa.selenium.chrome.ChromeOptions;
 import pages.DeliveryPage;
 
 import static com.codeborne.selenide.Selenide.open;
@@ -17,9 +18,14 @@ public class ReplanningTest {
     void setUp() {
         Configuration.browserSize = "1920x1080";
         Configuration.browser = "chrome";
-        Configuration.headless = Boolean.parseBoolean(
-                System.getProperty("selenide.headless", "false")
-        );
+
+        // Флаги Chrome для работы в контейнере CI
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("--no-sandbox");
+        options.addArguments("--disable-dev-shm-usage");
+        options.addArguments("--disable-gpu");
+        Configuration.browserCapabilities = options;
+
         open("http://localhost:9999");
     }
 
