@@ -23,14 +23,14 @@ public class ReplanningTest {
         );
 
         // Флаги Chrome для работы в CI (Ubuntu/GitHub Actions)
+        // ВАЖНО: --single-process и --no-zygote ЗАПРЕЩЕНЫ — они крашат Chrome
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--no-sandbox");
         options.addArguments("--disable-setuid-sandbox");
         options.addArguments("--disable-dev-shm-usage");
         options.addArguments("--disable-gpu");
-        options.addArguments("--no-zygote");
-        options.addArguments("--single-process");
         options.addArguments("--remote-allow-origins=*");
+        options.addArguments("--disable-software-rasterizer");
         Configuration.browserCapabilities = options;
 
         open("http://localhost:9999");
@@ -38,17 +38,13 @@ public class ReplanningTest {
 
     @Test
     void shouldReplanDeliveryDate() {
-        // ========== ПЕРВАЯ ЗАЯВКА ==========
         DeliveryData firstData = DataGenerator.generateData("ru");
         deliveryPage.fillForm(firstData);
         deliveryPage.submitForm();
         deliveryPage.verifySuccessNotification(firstData.getDate());
 
-        // Пауза, чтобы приложение обработало первую заявку и уведомление исчезло
         Selenide.sleep(7000);
 
-        // ========== ВТОРАЯ ЗАЯВКА ==========
-        // Перезагружаем страницу, чтобы поля были чистыми (иначе данные дублируются)
         open("http://localhost:9999");
         DeliveryPage page2 = new DeliveryPage();
 
@@ -61,14 +57,8 @@ public class ReplanningTest {
 
         page2.fillForm(secondData);
         page2.submitForm();
-
-        // Проверяем модалку перепланирования
         page2.verifyReplanModal();
-
-        // Нажимаем «Перепланировать»
         page2.clickReplan();
-
-        // Проверяем успех
         page2.verifySuccessNotification(secondData.getDate());
     }
 }
