@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class DeliveryData {
     private String city;
-    private String date;
     private String name;
     private String phone;
 }

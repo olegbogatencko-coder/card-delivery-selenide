@@ -18,29 +18,26 @@ public class ReplanningTest {
 
     @Test
     void shouldReplanDeliveryDate() {
+        DeliveryData data = DataGenerator.generateData("ru");
+        String firstDate = DataGenerator.generateDate(3);
+        String secondDate = DataGenerator.generateDate(7);
+
         // ========== ПЕРВАЯ ЗАЯВКА ==========
-        DeliveryData firstData = DataGenerator.generateData("ru");
-        deliveryPage.fillForm(firstData);
+        deliveryPage.fillForm(data, firstDate);
         deliveryPage.submitForm();
-        deliveryPage.verifySuccessNotification(firstData.getDate());
+        deliveryPage.verifySuccessNotification(firstDate);
         deliveryPage.waitForNotificationDisappear();
 
-        // ========== ВТОРАЯ ЗАЯВКА ==========
-        open("http://localhost:9999");
-        DeliveryPage page2 = new DeliveryPage();
+        // ========== ВТОРАЯ ЗАЯВКА (без перезагрузки страницы!) ==========
+        // Просто меняем дату на уже заполненной форме
+        deliveryPage.changeDate(secondDate);
+        deliveryPage.submitForm();
 
-        DeliveryData secondData = DeliveryData.builder()
-                .city(firstData.getCity())
-                .date(DataGenerator.generateDate(7))
-                .name(firstData.getName())
-                .phone(firstData.getPhone())
-                .build();
+        // Проверяем модалку, перепланируем
+        deliveryPage.verifyReplanModal();
+        deliveryPage.clickReplan();
 
-        page2.fillForm(secondData);
-        page2.submitForm();
-
-        // ========== ГЛАВНАЯ ПРОВЕРКА: модалка перепланирования ==========
-        page2.verifyReplanModal();
-        page2.clickReplan();
+        // ========== ПРОВЕРКА ВТОРОГО УВЕДОМЛЕНИЯ (как просил учитель) ==========
+        deliveryPage.verifySuccessNotification(secondDate);
     }
 }

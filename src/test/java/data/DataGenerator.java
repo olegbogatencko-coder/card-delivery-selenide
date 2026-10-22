@@ -19,7 +19,6 @@ public class DataGenerator {
 
         return DeliveryData.builder()
                 .city(city)
-                .date(generateDate(3))
                 .name(name)
                 .phone(phone)
                 .build();

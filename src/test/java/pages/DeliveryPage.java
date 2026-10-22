@@ -2,6 +2,7 @@ package pages;
 
 import com.codeborne.selenide.SelenideElement;
 import data.DeliveryData;
+import org.openqa.selenium.Keys;
 
 import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selenide.$;
@@ -18,21 +19,34 @@ public class DeliveryPage {
     private final SelenideElement replanButton = replanModal.$("button.button");
     private final SelenideElement successNotification = $("[data-test-id='success-notification']");
 
-    public void fillForm(DeliveryData data) {
+    public void fillForm(DeliveryData data, String date) {
         cityInput.setValue(data.getCity());
-        dateInput.setValue(data.getDate());
+
+        // Очищаем поле перед вводом (как просил учитель)
+        dateInput.press(Keys.CONTROL, "a");
+        dateInput.press(Keys.BACK_SPACE);
+        dateInput.setValue(date);
+
         nameInput.setValue(data.getName());
         phoneInput.setValue(data.getPhone());
         agreementCheckbox.click();
+    }
+
+    // Метод для смены только даты!
+    public void changeDate(String newDate) {
+        dateInput.press(Keys.CONTROL, "a");
+        dateInput.press(Keys.BACK_SPACE);
+        dateInput.setValue(newDate);
     }
 
     public void submitForm() {
         submitButton.click();
     }
 
+    // Проверяем полный текст с датой (как просил учитель)
     public void verifySuccessNotification(String expectedDate) {
-        successNotification.shouldBe(visible).shouldHave(text("Успешно!"));
-        successNotification.shouldHave(text(expectedDate));
+        successNotification.shouldBe(visible)
+                .shouldHave(text("Встреча успешно запланирована на " + expectedDate));
     }
 
     public void waitForNotificationDisappear() {
